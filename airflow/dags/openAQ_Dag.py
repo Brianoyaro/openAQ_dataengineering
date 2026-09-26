@@ -9,17 +9,11 @@ load_dotenv(env_path)
 
 
 OPENAQ_API_KEY = os.getenv("OPEN_API_KEY")
+LONGITUDE = os.getenv("NAIROBI_LATITUDE")
+LATITUDE = os.getenv("NAIROBI_LONGITUDE")
+RADIUS = os.getenv("NAIROBI_RADIUS")
+PAGE = os.getenv("PAGE", 1)
 
-
-csv_file = 'temp_measurements.csv'
-PAGE = 1
-LIMIT = 1000
-COUNTRY_ID = 17 #Kenya
-NAIROBI_COORDINATES = {
-    "lat": -1.286389,
-    'lon': 36.817223,
-    'radius': 25000 #25KM
-}
 
 
 
@@ -32,6 +26,10 @@ def run_me():
     @task
     def extract():
         print("extracted")
+        resp = extract_with_coordinates(lat=LATITUDE,lon=LONGITUDE,radius=RADIUS,page=PAGE)
+        response = extract_result(resp)
+        print(response)
+        return response
 
     @task
     def transform():
@@ -41,6 +39,7 @@ def run_me():
     def load():
         print("loaded")
 
-    extract() >> transform() >>load()
+    response = extract()
+    transform() >>load()
 
 run_me()
