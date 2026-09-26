@@ -1,3 +1,5 @@
+# pgcli postgresql://postgres:postgres@localhost:5433/openAQ
+
 services:
   db:
     container_name: postgres
@@ -18,7 +20,7 @@ services:
       PGADMIN_DEFAULT_EMAIL: "pgadmin@pgadmin.com"
       PGADMIN_DEFAULT_PASSWORD: "pgadmin"
     ports:
-      - "8080:80"
+      - "8081:80"
     volumes:
       - vol-pgadmin_data:/var/lib/pgadmin
 
