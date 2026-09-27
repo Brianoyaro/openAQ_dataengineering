@@ -2,7 +2,7 @@ from airflow.sdk import dag, task
 from airflow.providers.common.sql.operators.sql import SQLExecuteQueryOperator
 from airflow.providers.postgres.hooks.postgres import PostgresHook
 
-import pendulum
+from pendulum import datetime
 import os
 import json
 import tempfile
@@ -48,8 +48,8 @@ VALIDATED_DIR = Path("/usr/local/airflow/data/validated/openaq")
 
 
 @dag(
-    dag_id="run_me_version_two",
-    start_date=pendulum.datetime(2025, 4, 22, tz="UTC"),
+    dag_id="open_aq_etl_pipeline",
+    start_date=datetime(2025, 4, 22, tz="UTC"),
     schedule="@daily",
     catchup=False,
     max_active_runs=1,
