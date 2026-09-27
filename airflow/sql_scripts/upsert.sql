@@ -11,10 +11,10 @@ VALUES (
     %(location_id)s,
     %(location_name)s,
     %(sensor_id)s,
-    %(parameter)s,
+    %(parameter_name)s,
     %(unit)s,
     %(value)s,
-    %(measurement_timestamp)s
+    %(measured_at)s
 )
 ON CONFLICT (
     sensor_id,
