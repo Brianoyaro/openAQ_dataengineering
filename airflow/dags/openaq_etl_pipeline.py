@@ -1,4 +1,4 @@
-from airflow.sdk import dag, task
+from airflow.sdk import dag, task, get_current_context
 from airflow.providers.common.sql.operators.sql import SQLExecuteQueryOperator
 from airflow.providers.postgres.hooks.postgres import PostgresHook
 
@@ -38,8 +38,8 @@ RADIUS = os.getenv("NAIROBI_RADIUS")
 PAGE = int(os.getenv("PAGE", 1))
 
 
-DATE_FROM = "2026-08-01"
-DATE_TO = "2026-09-25"
+# DATE_FROM = "2026-08-01" #TODO
+# DATE_TO = "2026-09-25" #TODO
 
 
 RAW_DIR = Path("/usr/local/airflow/data/raw/openaq")
@@ -147,6 +147,28 @@ def open_aq_etl_pipeline():
             f"for sensor {sensor_id}"
         )
 
+        context = get_current_context()
+        
+        data_interval_start = context["data_interval_start"]
+        data_interval_end = context["data_interval_end"]
+
+        #############################################333
+        '''
+        I can switch this with:
+         replacing 
+           schedule=@daily 
+         with schedule=CronDataIntervalTimetable(
+                "0 0 * * *",
+                timezone="UTC",
+            )
+        '''
+        if data_interval_end == data_interval_start:
+            data_interval_end = data_interval_start.add(days=1)
+        #################################################
+
+        DATE_FROM = data_interval_start.to_iso8601_string() 
+        DATE_TO = data_interval_end.to_iso8601_string()
+        print(f"\n\ncontext: {context}\nDATE_FROM: {DATE_FROM}\nDATE_TO: {DATE_TO}")
         measurements = (
             extract_measurements_from_sensor_paginated(
                 sensor_id=sensor_id,
@@ -230,6 +252,28 @@ def open_aq_etl_pipeline():
         print(
             f"Validating {raw_file}"
         )
+
+        context = get_current_context()
+                
+        data_interval_start = context["data_interval_start"]
+        data_interval_end = context["data_interval_end"]
+
+        #############################################333
+        '''
+        I can switch this with:
+         replacing 
+           schedule=@daily 
+         with schedule=CronDataIntervalTimetable(
+                "0 0 * * *",
+                timezone="UTC",
+            )
+        '''
+        if data_interval_end == data_interval_start:
+            data_interval_end = data_interval_start.add(days=1)
+        #################################################
+        
+        DATE_FROM = data_interval_start.to_iso8601_string() 
+        DATE_TO = data_interval_end.to_iso8601_string()
 
         validated_dir = VALIDATED_DIR / (
             f"date_from={DATE_FROM}/"
