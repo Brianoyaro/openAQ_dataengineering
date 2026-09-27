@@ -1,6 +1,6 @@
 # extract_locations → extract_sensors → extract_measurements → validate_measurements → load_to_postgres.
 from openaq import OpenAQ
-from openaq.core.exceptions import RateLimitError, HTTPRateLimitError
+from openaq.core.exceptions import RateLimitError, HTTPRateLimitError, ApiKeyMissingError
 import time
 
 import os
@@ -38,8 +38,17 @@ def extract_locations_with_coordinates(lat, lon, radius, page=1):
             print(f"Current page: {page}")
 
             return location.dict()
-    except Exception as e:
-        print(e)
+
+    except (RateLimitError, HTTPRateLimitError):
+        print(
+            "Rate limit reached;"
+            "waiting 60 seconds before retrying"
+        )
+        time.sleep(60)
+
+    except ApiKeyMissingError as e:
+        print(f"Fatal: OpenAQ API key is missing. Error: {e}")
+        raise SystemExit(1)
 
 def extract_headers(data):
     return data['headers']
@@ -69,8 +78,17 @@ def extract_sensors_from_location(location):
             sensors = sensors.dict()['results']
             print(sensors)
             return sensors
-    except Exception as e:
-        print(e)
+        
+    except (RateLimitError, HTTPRateLimitError):
+        print(
+            "Rate limit reached; "
+            "waiting 60 seconds before retrying"
+        )
+        time.sleep(60)
+
+    except ApiKeyMissingError as e:
+        print(f"Fatal: OpenAQ API key is missing. Error: {e}")
+        raise SystemExit(1)
 
 
 def extract_measurements_from_sensor_paginated(
@@ -105,6 +123,9 @@ def extract_measurements_from_sensor_paginated(
                 time.sleep(60)
                 continue
 
+            except ApiKeyMissingError as e:
+                print(f"Fatal: OpenAQ API key is missing. Error: {e}")
+                raise SystemExit(1)
 
             measurements_results = measurements.dict()["results"]
 

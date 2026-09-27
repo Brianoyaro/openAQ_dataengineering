@@ -11,7 +11,7 @@ from datetime import datetime
 
 from dotenv import load_dotenv
 
-from python_scripts.openAQ import (
+from dags.python_scripts.openaq_data_puller import (
     extract_locations_with_coordinates,
     extract_result,
     extract_sensors_from_location,
@@ -49,7 +49,7 @@ VALIDATED_DIR = Path("/usr/local/airflow/data/validated/openaq")
 
 @dag(
     dag_id="open_aq_etl_pipeline",
-    start_date=datetime(2025, 4, 22, tz="UTC"),
+    start_date=datetime(2025, 4, 22),
     schedule="@daily",
     catchup=False,
     max_active_runs=1,
@@ -58,7 +58,7 @@ VALIDATED_DIR = Path("/usr/local/airflow/data/validated/openaq")
         "/usr/local/airflow/sql_scripts"
     ],
 )
-def openAQ_ETL():
+def open_aq_etl_pipeline():
 
     # 1. CREATE DATABASE TABLES
 
@@ -483,4 +483,4 @@ def openAQ_ETL():
     validated_files >> loaded
 
 
-openAQ_ETL()
+open_aq_etl_pipeline()
