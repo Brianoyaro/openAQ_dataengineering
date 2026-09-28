@@ -25,6 +25,26 @@ NAIROBI_COORDINATES = {
 
 
 
+def get_all_parameters():
+    try:
+        with OpenAQ(api_key=OPENAQ_API_KEY) as client:
+            response = client.parameters.list()
+            parameters = response.results
+            print(f"Parameters: {parameters}")
+
+            return parameters
+
+    except (RateLimitError, HTTPRateLimitError):
+        print(
+            "Rate limit reached;"
+            "waiting 60 seconds before retrying"
+        )
+        time.sleep(60)
+
+    except ApiKeyMissingError as e:
+        print(f"Fatal: OpenAQ API key is missing. Error: {e}")
+        raise SystemExit(1)
+
 def extract_locations_with_coordinates(lat, lon, radius, page=1):
     try:
         with OpenAQ(api_key=OPENAQ_API_KEY) as client:
@@ -143,7 +163,7 @@ def extract_measurements_from_sensor_paginated(
                     "location_id": location_id,
                     "location_name": location_name,
                     "sensor_id": sensor_id,
-                    "parameter": measurement["parameter"]["name"],
+                    "parameter_id": measurement["parameter"]["id"],
                     "unit": measurement["parameter"]["units"],
                     "value": measurement["value"],
                     "measurement_timestamp": (

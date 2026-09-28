@@ -2,7 +2,7 @@ CREATE TABLE IF NOT EXISTS raw_air_quality (
     location_id          BIGINT NOT NULL,
     location_name        TEXT NOT NULL,
     sensor_id            BIGINT NOT NULL,
-    parameter            TEXT NOT NULL,
+    parameter_id            BIGINT NOT NULL,
     unit                 TEXT NOT NULL,
     value                DOUBLE PRECISION NOT NULL,
     measurement_timestamp TIMESTAMPTZ NOT NULL,
@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS raw_air_quality (
     CONSTRAINT raw_air_quality_pk
         PRIMARY KEY (
             sensor_id,
-            parameter,
+            parameter_id,
             measurement_timestamp
         )
 );

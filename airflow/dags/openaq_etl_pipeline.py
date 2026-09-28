@@ -16,6 +16,7 @@ from dags.python_scripts.openaq_data_puller import (
     extract_result,
     extract_sensors_from_location,
     extract_measurements_from_sensor_paginated,
+    get_all_parameters,
 )
 
 
@@ -63,10 +64,16 @@ def open_aq_etl_pipeline():
     # 1. CREATE DATABASE TABLES
 
     create_tables = SQLExecuteQueryOperator(
-        task_id="create_table_if_absent",
+        task_id="create_raw_etl_table_if_absent",
         conn_id="postgres_conn",
         sql="create.sql",
     )
+
+    create_parameter_table = SQLExecuteQueryOperator(
+            task_id="create_parameters_table_if_absent",
+            conn_id="postgres_conn",
+            sql="create_parameters.sql",
+        )
 
 
     # 2. EXTRACT LOCATIONS
@@ -84,6 +91,7 @@ def open_aq_etl_pipeline():
         locations = extract_result(response)
 
         print(f"Extracted {len(locations)} locations")
+        print(f"Locations response: {locations}")
 
         return locations
 
@@ -415,7 +423,7 @@ def open_aq_etl_pipeline():
                         location_id,
                         location_name,
                         sensor_id,
-                        parameter,
+                        parameter_id,
                         unit,
                         value,
                         measurement_timestamp
@@ -431,7 +439,7 @@ def open_aq_etl_pipeline():
                     )
                     ON CONFLICT (
                         sensor_id,
-                        parameter,
+                        parameter_id,
                         measurement_timestamp
                     )
                     DO NOTHING;
@@ -454,7 +462,7 @@ def open_aq_etl_pipeline():
                                 measurement["location_id"],
                                 measurement["location_name"],
                                 measurement["sensor_id"],
-                                measurement["parameter"],
+                                measurement["parameter_id"],
                                 measurement["unit"],
                                 measurement["value"],
                                 measurement[
@@ -495,6 +503,87 @@ def open_aq_etl_pipeline():
             connection.close()
 
 
+
+    @task
+    def load_to_postgres_parameters():
+
+        parameters = get_all_parameters()
+
+        print(
+            f"Loading {len(parameters)} parameters "
+            f"into PostgreSQL"
+        )
+
+        hook = PostgresHook(
+            postgres_conn_id="postgres_conn"
+        )
+
+        connection = hook.get_conn()
+
+        try:
+
+            with connection.cursor() as cursor:
+
+                sql = """
+                    INSERT INTO parameters (
+                        parameter_id,
+                        parameter_name,
+                        parameter_units,
+                        parameter_display_name,
+                        parameter_description
+                    )
+                    VALUES (
+                        %s,
+                        %s,
+                        %s,
+                        %s,
+                        %s
+                    )
+                    ON CONFLICT (
+                        parameter_id
+                    )
+                    DO NOTHING;
+                """
+
+                rows = []
+
+                for parameter in parameters:
+                    rows.append(
+                        (
+                            parameter.id,
+                            parameter.name,
+                            parameter.units,
+                            parameter.display_name,
+                            parameter.description,
+                        )
+                    )
+
+                if rows:
+
+                    cursor.executemany(
+                        sql,
+                        rows,
+                    )
+
+                    connection.commit()
+
+                    print(f"Loaded {len(rows)} parameters to the database")
+
+                else:
+
+                    print("Failed to load parameters to the database")
+
+        except Exception:
+
+            connection.rollback()
+
+            raise
+
+        finally:
+
+            connection.close()
+
+
     # PIPELINE
     locations = extract_locations()
 
@@ -510,13 +599,17 @@ def open_aq_etl_pipeline():
         raw_file=raw_files
     )
 
-    loaded = load_to_postgres.expand(
+    loaded_measurements = load_to_postgres.expand(
         validated_file=validated_files
     )
 
+    loaded_parameters = load_to_postgres_parameters()
+
 
     # DEPENDENCIES
-    create_tables >> locations
+    create_tables >> create_parameter_table
+    create_parameter_table >> loaded_parameters
+    loaded_parameters >> locations
 
     locations >> sensors
 
@@ -524,7 +617,7 @@ def open_aq_etl_pipeline():
 
     raw_files >> validated_files
 
-    validated_files >> loaded
+    validated_files >> loaded_measurements
 
 
 open_aq_etl_pipeline()
