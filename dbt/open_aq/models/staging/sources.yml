@@ -1,0 +1,9 @@
+version: 2
+
+sources:
+  - name: openaq
+    database: openaq
+    schema: public
+    tables:
+      - name: parameters
+      - name: raw_air_quality
