@@ -1,0 +1,23 @@
+version: 2
+
+models:
+  - name: raw_air_quality
+    description: raw air quality data
+    columns:
+      - name: parameter_id
+        description: The unique identifier for the air quality metric being measured (e.g., PM2.5, CO, NO2).
+        tests:
+          - unique
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('parameters')
+                field: parameter_id
+  - name: parameters
+    description: a table which houses parameters data
+    columns:
+      - name: parameter_id
+        description: The unique identifier for the air quality metric being measured (e.g., PM2.5, CO, NO2).
+        tests:
+          - unique
+          - not_null
