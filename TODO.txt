@@ -12,3 +12,9 @@ https://docs.getdbt.com/docs/local/connect-data-platform/postgres-setup?version=
 
 
 
+The following resource is for power bi training. It is offered by microsoft. After dbt, take a look at these learning resources, and develop a power bi report for the project -and other projects later on-:
+
+https://learn.microsoft.com/en-us/training/courses/pl-300t00
+
+
+
