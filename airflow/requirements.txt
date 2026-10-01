@@ -3,7 +3,16 @@
 
 # Postgress connection
 apache-airflow-providers-postgres
+
 # to pull data
 openaq
 
-dotenv
+# dbt mapping on the dag lineage
+astronomer-cosmos
+dbt-postgres
+
+
+# environment variables
+# dotenv
+python-dotenv
+astro-run-dag # This package is needed for the astro run command. It will be removed before a deploy

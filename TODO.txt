@@ -1,17 +1,3 @@
-Read the following resources. We'll be implementing dbt this weekend. Start with the resources below:
-
-https://www.dataeast.africa/projects/nairobi-air-quality-airflow-pipeline
-
-
-https://python.openaq.org/resources/parameters/
-
-https://www.google.com/search?q=can+dbt+connect+to+postgresql&oq=can+dbt+connect+to+postgresql&gs_lcrp=EgZjaHJvbWUyBggAEEUYOdIBCTE0NDU2ajBqN6gCALACAA&sourceid=chrome&source=chrome.ob&ie=UTF-8
-
-
-https://docs.getdbt.com/docs/local/connect-data-platform/postgres-setup?version=2
-
-
-
 The following resource is for power bi training. It is offered by microsoft. After dbt, take a look at these learning resources, and develop a power bi report for the project -and other projects later on-:
 
 https://learn.microsoft.com/en-us/training/courses/pl-300t00

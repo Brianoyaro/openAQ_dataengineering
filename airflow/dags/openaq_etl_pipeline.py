@@ -2,12 +2,15 @@ from airflow.sdk import dag, task, get_current_context
 from airflow.providers.common.sql.operators.sql import SQLExecuteQueryOperator
 from airflow.providers.postgres.hooks.postgres import PostgresHook
 
+from cosmos import DbtTaskGroup, ProjectConfig, ProfileConfig
+from cosmos.profiles import PostgresUserPasswordProfileMapping
+
 from pendulum import datetime
 import os
 import json
 import tempfile
 from pathlib import Path
-from datetime import datetime
+# from datetime import datetime
 
 from dotenv import load_dotenv
 
@@ -583,6 +586,23 @@ def open_aq_etl_pipeline():
 
             connection.close()
 
+    dbt_transform = DbtTaskGroup(
+        group_id="dbt_transform",
+        project_config=ProjectConfig(
+            dbt_project_path="/usr/local/airflow/dbt/open_aq",
+        ),
+        profile_config=ProfileConfig(
+            profile_name="open_aq",
+            target_name="dev",
+            profile_mapping=PostgresUserPasswordProfileMapping(
+                conn_id="postgres_conn",
+                profile_args={
+                    "schema": "public",
+                },
+            ),
+        ),
+    )
+
 
     # PIPELINE
     locations = extract_locations()
@@ -618,6 +638,8 @@ def open_aq_etl_pipeline():
     raw_files >> validated_files
 
     validated_files >> loaded_measurements
+
+    loaded_measurements >> dbt_transform
 
 
 open_aq_etl_pipeline()
